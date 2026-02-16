@@ -1,0 +1,12 @@
+BOLETA DE VENTA
+RUC: 12345678901
+Bodega Don Pepe
+
+5 x Galleta Oreo S/.1.80
+3 Gaseosa Inca Kola 500ml 2.20
+Pan de molde Bimbo 2 5.50
+10x Leche Gloria 400ml S/.3.50
+Arroz Costeño 1kg 5 3.80
+
+TOTAL: S/.72.40
+GRACIAS POR SU COMPRA

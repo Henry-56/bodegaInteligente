@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    height: 100%;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    min-height: 100%;
+  }
+}

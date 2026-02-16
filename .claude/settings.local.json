@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npm run db:seed:*)",
+      "Bash(npx next build:*)",
+      "Bash(npx vitest run)",
+      "Bash(timeout 15 npx next dev:*)",
+      "Bash(tasklist:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(test -d /c/Users/HENRY/Documents/trabajo FYGRAD/detectorExamenes/uploads)"
+    ]
+  }
+}
