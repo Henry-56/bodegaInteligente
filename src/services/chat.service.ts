@@ -1,5 +1,3 @@
-import { writeFile, mkdir } from "node:fs/promises";
-import { join, extname } from "node:path";
 import { prisma } from "@/lib/prisma";
 import { parseIntent } from "@/chat/intent-router";
 import { executeIntent, executeSale, executeStockQuery, executeProfitQuery, executeDebtPayment, executeDebtRegistration } from "@/chat/executor";
@@ -9,13 +7,12 @@ import { formatSoles } from "@/lib/date";
 
 // ── Image helpers ──────────────────────────────────────────────
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/jpg"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-async function saveAndPrepareImage(
+async function prepareImage(
   file: File,
-): Promise<{ imagePath: string; image: ImageInput }> {
+): Promise<{ image: ImageInput }> {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     throw new Error("Tipo de imagen no soportado. Usa PNG, JPEG o WebP.");
   }
@@ -25,15 +22,7 @@ async function saveAndPrepareImage(
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // Save to uploads/
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  const ext = extname(file.name || "image.jpg") || ".jpg";
-  const filename = `chat_receipt_${Date.now()}${ext}`;
-  const imagePath = join(UPLOAD_DIR, filename);
-  await writeFile(imagePath, buffer);
-
   return {
-    imagePath,
     image: {
       base64: buffer.toString("base64"),
       mimeType: file.type,
@@ -46,7 +35,6 @@ async function saveAndPrepareImage(
 function createToolHandlers(
   warehouseId: string,
   userId: string,
-  imagePath?: string,
 ): Record<string, ToolHandler> {
   return {
     registrar_venta: async (args) => {
@@ -101,7 +89,6 @@ function createToolHandlers(
 
       const result = await confirmPurchase(warehouseId, userId, {
         vendorName: args.vendorName ? String(args.vendorName) : undefined,
-        imagePath,
         items,
       });
 
@@ -127,13 +114,11 @@ export async function interpretChat(
   let result: { response: string; success: boolean; data?: unknown };
   let toolsUsed: Array<{ tool: string; args: unknown; result: unknown }> = [];
 
-  // Prepare image if provided
-  let imagePath: string | undefined;
+  // Prepare image if provided (in-memory only, no disk write for Vercel compatibility)
   let imageInput: ImageInput | undefined;
 
   if (imageFile) {
-    const prepared = await saveAndPrepareImage(imageFile);
-    imagePath = prepared.imagePath;
+    const prepared = await prepareImage(imageFile);
     imageInput = prepared.image;
   }
 
@@ -154,7 +139,7 @@ export async function interpretChat(
     // Primary path: ReAct agent (Gemini with tool chaining + vision)
     const agentResult = await callGeminiReact(
       message,
-      createToolHandlers(warehouseId, userId, imagePath),
+      createToolHandlers(warehouseId, userId),
       imageInput,
     );
 
