@@ -291,7 +291,9 @@ function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
   const [salePrice, setSalePrice] = useState(
     product?.salePriceDefault ? String(Number(product.salePriceDefault)) : ""
   );
-  const [initialQty, setInitialQty] = useState("0");
+  const [initialQty, setInitialQty] = useState(
+    product?.inventory?.qtyOnHand ? String(product.inventory.qtyOnHand) : "0"
+  );
   const [initialCost, setInitialCost] = useState("0");
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -309,9 +311,8 @@ function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
 
       if (isEditing) {
         if (name !== product.name) body.name = name;
-        body.salePriceDefault = salePrice
-          ? parseFloat(salePrice)
-          : null;
+        body.salePriceDefault = salePrice ? parseFloat(salePrice) : null;
+        body.qtyOnHand = parseInt(initialQty, 10) || 0;
       } else {
         body.name = name;
         if (salePrice) body.salePriceDefault = parseFloat(salePrice);
@@ -365,25 +366,24 @@ function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
         placeholder="0.00"
       />
 
+      <Input
+        label={isEditing ? "Stock actual" : "Cantidad inicial"}
+        type="number"
+        min="0"
+        step="1"
+        value={initialQty}
+        onChange={(e) => setInitialQty(e.target.value)}
+      />
+
       {!isEditing && (
-        <>
-          <Input
-            label="Cantidad inicial"
-            type="number"
-            min="0"
-            step="1"
-            value={initialQty}
-            onChange={(e) => setInitialQty(e.target.value)}
-          />
-          <Input
-            label="Costo inicial unitario (S/)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={initialCost}
-            onChange={(e) => setInitialCost(e.target.value)}
-          />
-        </>
+        <Input
+          label="Costo inicial unitario (S/)"
+          type="number"
+          step="0.01"
+          min="0"
+          value={initialCost}
+          onChange={(e) => setInitialCost(e.target.value)}
+        />
       )}
 
       <div className="flex justify-end gap-3 pt-2">

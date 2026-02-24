@@ -66,6 +66,13 @@ export async function updateProduct(
       salePriceDefault: input.salePriceDefault !== undefined
         ? input.salePriceDefault
         : product.salePriceDefault,
+      inventory: input.qtyOnHand !== undefined
+        ? {
+            update: {
+              qtyOnHand: input.qtyOnHand,
+            },
+          }
+        : undefined,
     },
     include: { inventory: true },
   });
