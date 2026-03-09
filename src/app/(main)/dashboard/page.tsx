@@ -2,6 +2,7 @@
 
 import { useApi } from "@/hooks/useApi";
 import Card from "@/components/ui/Card";
+import { getErrorMessage } from "@/lib/error-messages";
 
 interface DashboardData {
   today: {
@@ -46,7 +47,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="rounded-lg bg-red-50 p-6 text-center">
-        <p className="text-sm text-red-700">{error}</p>
+        <p className="text-sm text-red-700">{getErrorMessage(error)}</p>
         <button
           onClick={refetch}
           className="mt-3 text-sm font-medium text-red-600 underline hover:text-red-800"

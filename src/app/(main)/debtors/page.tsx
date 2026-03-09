@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
+import { getErrorMessage } from "@/lib/error-messages";
 
 interface Debt {
   id: string;
@@ -87,7 +88,7 @@ export default function DebtorsPage() {
           {error && (
             <div className="p-6">
               <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-                {error}
+                {getErrorMessage(error)}
                 <button
                   onClick={refetch}
                   className="ml-2 font-medium underline hover:text-red-800"
@@ -325,7 +326,7 @@ function PaymentModal({
       onSuccess();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Error al registrar pago"
+        getErrorMessage(err instanceof Error ? err.message : null)
       );
     } finally {
       setSubmitting(false);

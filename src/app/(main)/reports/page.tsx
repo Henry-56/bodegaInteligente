@@ -5,6 +5,7 @@ import { useApi } from "@/hooks/useApi";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
+import { getErrorMessage } from "@/lib/error-messages";
 
 interface SaleItem {
   id: string;
@@ -167,7 +168,7 @@ export default function ReportsPage() {
       {/* Error */}
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          {error}
+          {getErrorMessage(error)}
           <button
             onClick={refetch}
             className="ml-2 font-medium underline hover:text-red-800"

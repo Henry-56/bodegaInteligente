@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
+import { getErrorMessage } from "@/lib/error-messages";
 
 interface Product {
   id: string;
@@ -113,7 +114,7 @@ export default function ProductsPage() {
       {/* Error */}
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          {error}
+          {getErrorMessage(error)}
           <button
             onClick={refetch}
             className="ml-2 font-medium underline hover:text-red-800"
@@ -344,7 +345,7 @@ function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {formError && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-          {formError}
+          {getErrorMessage(formError)}
         </div>
       )}
 

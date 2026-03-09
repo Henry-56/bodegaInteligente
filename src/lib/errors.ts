@@ -30,10 +30,17 @@ export function withAuth(handler: HandlerFn) {
   return async (req: Request, ctx?: { params?: any }) => {
     try {
       const session = await getServerSession(authOptions);
-      if (!session?.user?.warehouseId) {
+      if (!session?.user) {
         return NextResponse.json(
           { error: "UNAUTHORIZED" },
           { status: 401 }
+        );
+      }
+
+      if (!session.user.warehouseId) {
+        return NextResponse.json(
+          { error: "WAREHOUSE_NOT_LINKED" },
+          { status: 403 }
         );
       }
 

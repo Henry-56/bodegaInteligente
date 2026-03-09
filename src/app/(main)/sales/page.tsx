@@ -5,6 +5,7 @@ import { useApi } from "@/hooks/useApi";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
+import { getErrorMessage } from "@/lib/error-messages";
 
 interface Product {
   id: string;
@@ -78,7 +79,7 @@ export default function SalesPage() {
           {error && (
             <div className="p-6">
               <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-                {error}
+                {getErrorMessage(error)}
                 <button
                   onClick={refetch}
                   className="ml-2 font-medium underline hover:text-red-800"
@@ -261,7 +262,7 @@ function QuickSaleForm({ onSaleComplete }: QuickSaleFormProps) {
       // Auto-hide success message
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrar venta");
+      setError(getErrorMessage(err instanceof Error ? err.message : null));
     } finally {
       setSubmitting(false);
     }
