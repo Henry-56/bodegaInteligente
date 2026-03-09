@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/errors";
 import { findOrCreateProduct } from "./product.service";
 import type { ConfirmPurchaseInput } from "@/schemas/purchase.schema";
-import type { Channel } from "../../prisma/generated/client.js";
+import type { Channel } from "@/generated/prisma/client";
 
 export async function confirmPurchase(
   warehouseId: string,
