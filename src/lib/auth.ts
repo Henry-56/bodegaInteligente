@@ -12,7 +12,6 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("Auth: Authorize attempt", credentials?.email);
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -20,38 +19,28 @@ export const authOptions: AuthOptions = {
           include: { warehouses: { take: 1 } },
         });
 
-        if (!user) {
-          console.log("Auth: User not found", credentials.email);
-          return null;
-        }
+        if (!user) return null;
 
         const isValid = await bcrypt.compare(
           credentials.password,
           user.passwordHash
         );
-        console.log("Auth: Password comparison", {
-          email: credentials.email,
-          isValid,
-        });
 
         if (!isValid) return null;
 
-        const userToReturn = {
+        return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
           warehouseId: user.warehouses[0]?.id ?? null,
         };
-        console.log("Auth: Authorize success", userToReturn);
-        return userToReturn;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log("Auth: JWT callback - user present", user);
         token.userId = user.id;
         token.role = (user as any).role;
         token.warehouseId = (user as any).warehouseId;
@@ -59,7 +48,6 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log("Auth: Session callback", { tokenPresent: !!token });
       if (session.user) {
         (session.user as any).userId = token.userId;
         (session.user as any).role = token.role;
