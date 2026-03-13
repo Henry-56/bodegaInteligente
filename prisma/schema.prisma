@@ -22,6 +22,11 @@ enum DebtStatus {
   PAID
 }
 
+enum MovementType {
+  PURCHASE
+  SALE
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -61,6 +66,7 @@ model Product {
   inventory     Inventory?
   purchaseItems PurchaseItem[]
   saleItems     SaleItem[]
+  movements     InventoryMovement[]
 
   @@unique([warehouseId, name])
 }
@@ -98,6 +104,7 @@ model PurchaseItem {
   qty             Int
   unitCost        Decimal @db.Decimal(12, 4)
   subtotal        Decimal @db.Decimal(12, 4)
+  movement        InventoryMovement?
 }
 
 model Sale {
@@ -123,6 +130,7 @@ model SaleItem {
   unitPrice        Decimal @db.Decimal(12, 4)
   unitCostSnapshot Decimal @db.Decimal(12, 4)
   profit           Decimal @db.Decimal(12, 4)
+  movement         InventoryMovement?
 }
 
 model Debtor {
@@ -169,4 +177,21 @@ model ChatEvent {
   intent      String?
   resultJson  String?
   createdAt   DateTime  @default(now())
+}
+
+model InventoryMovement {
+  id             String       @id @default(cuid())
+  productId      String
+  product        Product      @relation(fields: [productId], references: [id])
+  type           MovementType
+  qty            Int
+  unitCost       Decimal      @db.Decimal(12, 4)
+  total          Decimal      @db.Decimal(12, 4)
+  createdAt      DateTime     @default(now())
+  purchaseItemId String?      @unique
+  purchaseItem   PurchaseItem? @relation(fields: [purchaseItemId], references: [id])
+  saleItemId     String?      @unique
+  saleItem       SaleItem?    @relation(fields: [saleItemId], references: [id])
+
+  @@index([productId])
 }

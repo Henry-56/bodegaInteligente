@@ -27,26 +27,21 @@ async function main() {
   // Create warehouse
   const warehouse = await prisma.warehouse.upsert({
     where: { id: "warehouse-demo-001" },
-    update: {},
+    update: {
+      name: "Ladrillera El Progreso",
+    },
     create: {
       id: "warehouse-demo-001",
-      name: "Bodega Don Pepe",
+      name: "Ladrillera El Progreso",
       ownerId: owner.id,
     },
   });
 
   // Products with initial inventory
   const products = [
-    { name: "Galleta Oreo", salePrice: 2.5, qty: 50, cost: 1.8 },
-    { name: "Gaseosa Inca Kola 500ml", salePrice: 3.0, qty: 40, cost: 2.2 },
-    { name: "Pan de molde Bimbo", salePrice: 7.5, qty: 20, cost: 5.5 },
-    { name: "Leche Gloria 400ml", salePrice: 4.5, qty: 30, cost: 3.5 },
-    { name: "Arroz Costeño 1kg", salePrice: 5.0, qty: 25, cost: 3.8 },
-    { name: "Aceite Primor 1L", salePrice: 9.0, qty: 15, cost: 7.0 },
-    { name: "Azúcar Rubia 1kg", salePrice: 4.0, qty: 20, cost: 3.0 },
-    { name: "Fideos Don Vittorio", salePrice: 3.5, qty: 35, cost: 2.5 },
-    { name: "Atún Florida", salePrice: 5.5, qty: 18, cost: 4.0 },
-    { name: "Jabón Bolívar", salePrice: 3.0, qty: 25, cost: 2.0 },
+    { name: "Ladrillo King Kong", salePrice: 1.2, qty: 1000, cost: 0.8 },
+    { name: "Ladrillo Pandereta", salePrice: 0.9, qty: 1500, cost: 0.6 },
+    { name: "Ladrillo Caravavista", salePrice: 1.5, qty: 800, cost: 1.0 },
   ];
 
   for (const p of products) {

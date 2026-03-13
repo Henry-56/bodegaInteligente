@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/errors";
 import { findOrCreateProduct } from "./product.service";
 import type { ConfirmPurchaseInput } from "@/schemas/purchase.schema";
-import type { Channel } from "@/generated/prisma/client";
+import type { Channel, MovementType } from "@/generated/prisma/client";
 
 export async function confirmPurchase(
   warehouseId: string,
@@ -38,7 +38,7 @@ export async function confirmPurchase(
       purchaseTotal += subtotal;
 
       // Create purchase item
-      await tx.purchaseItem.create({
+      const purchaseItem = await tx.purchaseItem.create({
         data: {
           purchaseId: purchase.id,
           productId: product.id,
@@ -46,6 +46,18 @@ export async function confirmPurchase(
           qty: item.qty,
           unitCost: item.unitCost,
           subtotal,
+        },
+      });
+
+      // Track movement (PURCHASE)
+      await tx.inventoryMovement.create({
+        data: {
+          productId: product.id,
+          type: "PURCHASE",
+          qty: item.qty,
+          unitCost: item.unitCost,
+          total: subtotal,
+          purchaseItemId: purchaseItem.id,
         },
       });
 
@@ -193,7 +205,25 @@ export async function recordSale(
           })),
         },
       },
+      include: {
+        items: true,
+      },
     });
+
+    // Track movements (SALE)
+    for (const si of sale.items) {
+      const originalItem = saleItems.find((item) => item.productId === si.productId);
+      await tx.inventoryMovement.create({
+        data: {
+          productId: si.productId,
+          type: "SALE",
+          qty: si.qty,
+          unitCost: si.unitCostSnapshot,
+          total: Number(si.unitCostSnapshot) * si.qty,
+          saleItemId: si.id,
+        },
+      });
+    }
 
     return {
       saleId: sale.id,
@@ -202,5 +232,37 @@ export async function recordSale(
       totalProfit,
       items: saleItems,
     };
+  });
+}
+
+export async function getInventoryHistory(warehouseId: string, productId: string) {
+  return prisma.inventoryMovement.findMany({
+    where: {
+      productId,
+      product: { warehouseId },
+    },
+    orderBy: { createdAt: "desc" },
+    include: {
+      purchaseItem: {
+        include: {
+          purchase: {
+            select: {
+              vendorName: true,
+              purchasedAt: true,
+            },
+          },
+        },
+      },
+      saleItem: {
+        include: {
+          sale: {
+            select: {
+              soldAt: true,
+              channel: true,
+            },
+          },
+        },
+      },
+    },
   });
 }
