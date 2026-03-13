@@ -161,16 +161,20 @@ export async function interpretChat(
     intentName = intent.intent;
   }
 
-  // Save chat event
-  await prisma.chatEvent.create({
-    data: {
-      warehouseId,
-      userId,
-      text: text || "[imagen de boleta]",
-      intent: intentName,
-      resultJson: JSON.stringify(result),
-    },
-  });
+  // Save chat event (wrap in try-catch to avoid crashing if DB is out of sync)
+  try {
+    await prisma.chatEvent.create({
+      data: {
+        warehouseId,
+        userId,
+        text: text || "[imagen de boleta]",
+        intent: intentName,
+        resultJson: JSON.stringify(result),
+      },
+    });
+  } catch (err) {
+    console.error("Failed to save ChatEvent:", err);
+  }
 
   return {
     intent: intentName,
