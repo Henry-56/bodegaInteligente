@@ -27,7 +27,7 @@ export async function confirmPurchase(
 
     for (const item of input.items) {
       // Find or create product
-      const product = await findOrCreateProduct(warehouseId, item.productName);
+      const product = await findOrCreateProduct(warehouseId, item.productName, tx);
       if (!product) {
         throw new AppError("PRODUCT_CREATE_FAILED", 500, {
           productName: item.productName,

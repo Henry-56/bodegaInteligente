@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { normalizeProductName, levenshtein } from "@/lib/utils";
 import { AppError } from "@/lib/errors";
 import type { CreateProductInput, UpdateProductInput } from "@/schemas/product.schema";
 
 const FUZZY_THRESHOLD = 0.3;
 
-export async function listProducts(warehouseId: string, search?: string) {
+export async function listProducts(warehouseId: string, search?: string, tx: any = prisma) {
   const where: any = { warehouseId };
 
   if (search) {
@@ -13,7 +14,7 @@ export async function listProducts(warehouseId: string, search?: string) {
     where.name = { contains: search, mode: "insensitive" };
   }
 
-  return prisma.product.findMany({
+  return tx.product.findMany({
     where,
     include: { inventory: true },
     orderBy: { name: "asc" },
@@ -22,9 +23,10 @@ export async function listProducts(warehouseId: string, search?: string) {
 
 export async function createProduct(
   warehouseId: string,
-  input: CreateProductInput
+  input: CreateProductInput,
+  tx: any = prisma
 ) {
-  const product = await prisma.product.create({
+  const product = await tx.product.create({
     data: {
       warehouseId,
       name: input.name.trim(),
@@ -49,9 +51,10 @@ export async function createProduct(
 export async function updateProduct(
   productId: string,
   warehouseId: string,
-  input: UpdateProductInput
+  input: UpdateProductInput,
+  tx: any = prisma
 ) {
-  const product = await prisma.product.findFirst({
+  const product = await tx.product.findFirst({
     where: { id: productId, warehouseId },
   });
 
@@ -59,7 +62,7 @@ export async function updateProduct(
     throw new AppError("PRODUCT_NOT_FOUND", 404);
   }
 
-  return prisma.product.update({
+  return tx.product.update({
     where: { id: productId },
     data: {
       name: input.name?.trim() ?? product.name,
@@ -78,8 +81,8 @@ export async function updateProduct(
   });
 }
 
-export async function deleteProduct(productId: string, warehouseId: string) {
-  const product = await prisma.product.findFirst({
+export async function deleteProduct(productId: string, warehouseId: string, tx: any = prisma) {
+  const product = await tx.product.findFirst({
     where: { id: productId, warehouseId },
   });
 
@@ -88,29 +91,30 @@ export async function deleteProduct(productId: string, warehouseId: string) {
   }
 
   // Delete inventory first, then product
-  await prisma.inventory.deleteMany({ where: { productId } });
-  await prisma.product.delete({ where: { id: productId } });
+  await tx.inventory.deleteMany({ where: { productId } });
+  await tx.product.delete({ where: { id: productId } });
 }
 
 export async function findProductByName(
   warehouseId: string,
-  inputName: string
+  inputName: string,
+  tx: any = prisma
 ) {
   const normalized = normalizeProductName(inputName);
 
   // Tier 1: Exact match on normalized name
-  const allProducts = await prisma.product.findMany({
+  const allProducts = await tx.product.findMany({
     where: { warehouseId },
     include: { inventory: true },
   });
 
   const exactMatch = allProducts.find(
-    (p) => normalizeProductName(p.name) === normalized
+    (p: any) => normalizeProductName(p.name) === normalized
   );
   if (exactMatch) return exactMatch;
 
   // Tier 2: Contains match
-  const containsMatches = allProducts.filter((p) => {
+  const containsMatches = allProducts.filter((p: any) => {
     const pNorm = normalizeProductName(p.name);
     return pNorm.includes(normalized) || normalized.includes(pNorm);
   });
@@ -118,7 +122,7 @@ export async function findProductByName(
   if (containsMatches.length === 1) return containsMatches[0];
   if (containsMatches.length > 1) {
     // Pick the shortest name (most specific match)
-    return containsMatches.sort((a, b) => a.name.length - b.name.length)[0];
+    return containsMatches.sort((a: any, b: any) => a.name.length - b.name.length)[0];
   }
 
   // Tier 3: Fuzzy match (Levenshtein)
@@ -142,28 +146,29 @@ export async function findProductByName(
 
 export async function findOrCreateProduct(
   warehouseId: string,
-  productName: string
+  productName: string,
+  tx: any = prisma
 ) {
-  const existing = await findProductByName(warehouseId, productName);
+  const existing = await findProductByName(warehouseId, productName, tx);
   if (existing) return existing;
-
+ 
   // Create new product
-  const product = await prisma.product.create({
+  const product = await tx.product.create({
     data: {
       warehouseId,
       name: productName.trim(),
     },
   });
-
-  await prisma.inventory.create({
+ 
+  await tx.inventory.create({
     data: {
       productId: product.id,
       qtyOnHand: 0,
       avgUnitCost: 0,
     },
   });
-
-  return prisma.product.findUnique({
+ 
+  return tx.product.findUnique({
     where: { id: product.id },
     include: { inventory: true },
   });
