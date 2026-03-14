@@ -27,7 +27,7 @@ IMPORTANTE — Distingue VENTA vs COMPRA:
   Palabras clave: "vendí", "venta", "me compraron", "salida"
 - registrar_compra = compraste/recibiste ladrillos (aumenta stock)
   Palabras clave: "compré", "añadir", "agregar", "llegó cargamento", "ingreso"
-- Si el usuario sube una imagen de boleta/factura → SIEMPRE es registrar_compra para ingresar stock, sin importar si la boleta dice "Venta" o "Compra" (algunos proveedores entregan boletas de venta que para nosotros son ingresos de compra).
+- Si el usuario sube una imagen de boleta/factura → Por defecto suele ser registrar_compra para ingresar stock, PERO si el mensaje del usuario o el contexto indica que es una VENTA (salida), usa registrar_venta.
 - Extrae TODOS los productos visibles en la imagen con su cantidad y precio/costo unitario.
 
 Reglas generales:

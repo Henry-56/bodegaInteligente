@@ -271,9 +271,12 @@ interface TransactionFormProps {
 function TransactionForm({ type, product, onSuccess, onCancel }: TransactionFormProps) {
   const isBuy = type === "buy";
   const maxQty = product.inventory?.qtyOnHand ?? 0;
-  const defaultPrice = isBuy
+  const rawDefaultPrice = isBuy
     ? Number(product.inventory?.avgUnitCost ?? 0.8)
     : Number(product.salePriceDefault ?? 0);
+  
+  // Aplicamos redondeo a 2 decimales para evitar ruidos visuales
+  const defaultPrice = Number(rawDefaultPrice.toFixed(2));
 
   const [qty, setQty] = useState<string>("1");
   const [price, setPrice] = useState<string>(defaultPrice > 0 ? String(defaultPrice) : "");
