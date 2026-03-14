@@ -20,7 +20,8 @@ async function main() {
       console.log(`\n📅 ${event.createdAt.toISOString()}`);
       console.log(`🤖 Intent: ${event.intent}`);
       console.log(`💬 Text: ${event.text || ""}`);
-      console.log(`⚙️ Result: ${JSON.stringify(JSON.parse(event.resultJson), null, 2)}`);
+      const result = event.resultJson ? JSON.parse(event.resultJson) : {};
+      console.log(`⚙️ Result: ${JSON.stringify(result, null, 2)}`);
       console.log("---------------------------");
     }
   } catch (err) {
