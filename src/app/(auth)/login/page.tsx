@@ -53,7 +53,7 @@ export default function LoginPage() {
           </svg>
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
-          Bodega <span className="text-gradient">Inteligente</span>
+          Ladrillera <span className="text-gradient">Inteligente</span>
         </h1>
         <p className="text-gray-400 font-medium">
           Bienvenido. Por favor identifícate.
