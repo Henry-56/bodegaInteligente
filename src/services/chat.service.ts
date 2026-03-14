@@ -185,6 +185,10 @@ export async function interpretChat(
     });
   } catch (err) {
     console.error("Failed to save ChatEvent:", err);
+    // Add IDs to result for diagnostic purposes if it failed
+    if (result && !result.success) {
+      result.response += ` (DEBUG: u=${userId}, w=${warehouseId})`;
+    }
   }
 
   return {

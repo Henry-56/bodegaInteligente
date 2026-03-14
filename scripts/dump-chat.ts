@@ -12,21 +12,28 @@ async function main() {
   try {
     const events = await prisma.chatEvent.findMany({
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 3,
     });
 
-    console.log("--- LATEST CHAT EVENTS ---");
+    console.log("--- LATEST CHAT EVENTS (NEON) ---");
     for (const event of events) {
       console.log(`\n📅 ${event.createdAt.toISOString()}`);
+      console.log(`👤 UserID: ${event.userId}`);
+      console.log(`🏠 WarehouseID: ${event.warehouseId}`);
       console.log(`🤖 Intent: ${event.intent}`);
-      console.log(`💬 Text: ${event.text || ""}`);
-      const result = event.resultJson ? JSON.parse(event.resultJson) : {};
-      console.log(`⚙️ Response: ${result.response}`);
-      console.log(`🛠️ Tools Used: ${JSON.stringify(result.toolsUsed || [], null, 2)}`);
+      console.log(`💬 Text Snippet: ${event.text?.substring(0, 50)}...`);
+      
+      try {
+        const result = event.resultJson ? JSON.parse(event.resultJson) : {};
+        console.log(`🛠️ Tools: ${JSON.stringify(result.toolsUsed || [], null, 2)}`);
+        console.log(`⚙️ Final Response: ${result.response}`);
+      } catch (e) {
+        console.log("❌ Result JSON Error:", event.resultJson);
+      }
       console.log("---------------------------");
     }
   } catch (err) {
-    console.error("❌ Error dumping events:", err);
+    console.error("❌ Error:", err);
   } finally {
     await prisma.$disconnect();
   }

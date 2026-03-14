@@ -9,6 +9,21 @@ export async function confirmPurchase(
   userId: string,
   input: ConfirmPurchaseInput
 ) {
+  // Diagnostic: Check if user and warehouse exist
+  const [userExists, warehouseExists] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.warehouse.findUnique({ where: { id: warehouseId } }),
+  ]);
+
+  if (!userExists || !warehouseExists) {
+    throw new AppError("IDENTITY_NOT_FOUND", 404, { 
+      userId, 
+      warehouseId, 
+      userFound: !!userExists, 
+      warehouseFound: !!warehouseExists 
+    });
+  }
+
   return prisma.$transaction(async (tx) => {
     try {
       // Create purchase record
