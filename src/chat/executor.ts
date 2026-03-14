@@ -35,7 +35,7 @@ export async function executeIntent(
     case "UNKNOWN":
       return {
         response:
-          'No entendí tu mensaje. Prueba con:\n- "vendí 5 galletas a 2.50"\n- "stock de galletas"\n- "ganancia hoy"\n- "Juan pagó 10"',
+          'No entendí tu mensaje. Prueba con:\n- "vendí 1000 pandereta"\n- "stock de king kong"\n- "ganancia de hoy"\n- "Juan pagó 50"',
         success: false,
       };
   }

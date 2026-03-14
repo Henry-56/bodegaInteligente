@@ -205,10 +205,10 @@ export default function ChatPage() {
                 />
               </svg>
               <p className="text-sm">
-                Escriba un mensaje para gestionar su bodega
+                Escriba un mensaje para gestionar su ladrillera
               </p>
               <p className="mt-1 text-xs text-gray-300">
-                Ej: &quot;Vender 2 arroz a 5.50&quot; o suba una foto de
+                Ej: &quot;Vender 1000 king kong a 1.20&quot; o suba una foto de
                 boleta
               </p>
             </div>
