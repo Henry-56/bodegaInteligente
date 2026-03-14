@@ -10,99 +10,107 @@ export async function confirmPurchase(
   input: ConfirmPurchaseInput
 ) {
   return prisma.$transaction(async (tx) => {
-    // Create purchase record
-    const purchase = await tx.purchase.create({
-      data: {
-        warehouseId,
-        userId,
-        vendorName: input.vendorName ?? null,
-        imagePath: input.imagePath ?? null,
-        rawOcrText: input.rawOcrText ?? null,
-        confirmed: true,
-        total: 0,
-      },
-    });
+    try {
+      // Create purchase record
+      const purchase = await tx.purchase.create({
+        data: {
+          warehouseId,
+          userId,
+          vendorName: input.vendorName ?? null,
+          imagePath: input.imagePath ?? null,
+          rawOcrText: input.rawOcrText ?? null,
+          confirmed: true,
+          total: 0,
+        },
+      });
 
-    let purchaseTotal = 0;
+      let purchaseTotal = 0;
 
-    for (const item of input.items) {
-      // Find or create product
-      const product = await findOrCreateProduct(warehouseId, item.productName, tx);
-      if (!product) {
-        throw new AppError("PRODUCT_CREATE_FAILED", 500, {
-          productName: item.productName,
+      for (const item of input.items) {
+        // Find or create product
+        const product = await findOrCreateProduct(warehouseId, item.productName, tx);
+        if (!product) {
+          throw new AppError("PRODUCT_CREATE_FAILED", 500, {
+            productName: item.productName,
+          });
+        }
+
+        const subtotal = item.qty * item.unitCost;
+        purchaseTotal += subtotal;
+
+        // Create purchase item
+        const purchaseItem = await tx.purchaseItem.create({
+          data: {
+            purchaseId: purchase.id,
+            productId: product.id,
+            productNameText: item.productName,
+            qty: item.qty,
+            unitCost: item.unitCost,
+            subtotal,
+          },
+        });
+
+        // Track movement (PURCHASE)
+        await tx.inventoryMovement.create({
+          data: {
+            productId: product.id,
+            type: "PURCHASE",
+            qty: item.qty,
+            unitCost: item.unitCost,
+            total: subtotal,
+            purchaseItemId: purchaseItem.id,
+          },
+        });
+
+        // Update inventory with weighted average cost
+        const inventory = await tx.inventory.findUnique({
+          where: { productId: product.id },
+        });
+
+        const oldQty = inventory?.qtyOnHand ?? 0;
+        const oldAvg = inventory ? Number(inventory.avgUnitCost) : 0;
+        const newQty = oldQty + item.qty;
+
+        let newAvg: number;
+        if (newQty === 0) {
+          newAvg = 0;
+        } else {
+          newAvg =
+            (oldQty * oldAvg + item.qty * item.unitCost) / newQty;
+        }
+
+        await tx.inventory.upsert({
+          where: { productId: product.id },
+          create: {
+            productId: product.id,
+            qtyOnHand: item.qty,
+            avgUnitCost: item.unitCost,
+          },
+          update: {
+            qtyOnHand: newQty,
+            avgUnitCost: newAvg,
+          },
         });
       }
 
-      const subtotal = item.qty * item.unitCost;
-      purchaseTotal += subtotal;
-
-      // Create purchase item
-      const purchaseItem = await tx.purchaseItem.create({
-        data: {
-          purchaseId: purchase.id,
-          productId: product.id,
-          productNameText: item.productName,
-          qty: item.qty,
-          unitCost: item.unitCost,
-          subtotal,
-        },
+      // Update purchase total
+      await tx.purchase.update({
+        where: { id: purchase.id },
+        data: { total: purchaseTotal },
       });
 
-      // Track movement (PURCHASE)
-      await tx.inventoryMovement.create({
-        data: {
-          productId: product.id,
-          type: "PURCHASE",
-          qty: item.qty,
-          unitCost: item.unitCost,
-          total: subtotal,
-          purchaseItemId: purchaseItem.id,
-        },
-      });
-
-      // Update inventory with weighted average cost
-      const inventory = await tx.inventory.findUnique({
-        where: { productId: product.id },
-      });
-
-      const oldQty = inventory?.qtyOnHand ?? 0;
-      const oldAvg = inventory ? Number(inventory.avgUnitCost) : 0;
-      const newQty = oldQty + item.qty;
-
-      let newAvg: number;
-      if (newQty === 0) {
-        newAvg = 0;
-      } else {
-        newAvg =
-          (oldQty * oldAvg + item.qty * item.unitCost) / newQty;
+      return {
+        purchaseId: purchase.id,
+        total: purchaseTotal,
+        itemCount: input.items.length,
+      };
+    } catch (err) {
+      console.error("❌ ERROR IN confirmPurchase transaction:", err);
+      if (err instanceof Error) {
+        console.error("Stack trace:", err.stack);
       }
-
-      await tx.inventory.upsert({
-        where: { productId: product.id },
-        create: {
-          productId: product.id,
-          qtyOnHand: item.qty,
-          avgUnitCost: item.unitCost,
-        },
-        update: {
-          qtyOnHand: newQty,
-          avgUnitCost: newAvg,
-        },
-      });
+      throw err; // Re-throw to ensure transaction rolls back
     }
-
-    // Update purchase total
-    await tx.purchase.update({
-      where: { id: purchase.id },
-      data: { total: purchaseTotal },
-    });
-
-    return {
-      purchaseId: purchase.id,
-      total: purchaseTotal,
-      itemCount: input.items.length,
-    };
   });
 }
 

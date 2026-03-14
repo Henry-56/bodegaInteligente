@@ -89,16 +89,24 @@ function createToolHandlers(
         return { response: "No se encontraron productos en la boleta.", success: false };
       }
 
-      const result = await confirmPurchase(warehouseId, userId, {
-        vendorName: args.vendorName ? String(args.vendorName) : undefined,
-        items,
-      });
+      try {
+        const result = await confirmPurchase(warehouseId, userId, {
+          vendorName: args.vendorName ? String(args.vendorName) : undefined,
+          items,
+        });
 
-      return {
-        response: `Compra registrada: ${result.itemCount} productos, total ${formatSoles(Number(result.total))}`,
-        success: true,
-        data: result,
-      };
+        return {
+          response: `Compra registrada: ${result.itemCount} productos, total ${formatSoles(Number(result.total))}`,
+          success: true,
+          data: result,
+        };
+      } catch (err) {
+        console.error("❌ Error in registrar_compra tool:", err);
+        return {
+          response: `Error al registrar la compra: ${err instanceof Error ? err.message : String(err)}`,
+          success: false,
+        };
+      }
     },
   };
 }
@@ -112,6 +120,7 @@ export async function interpretChat(
   imageFile?: File | null,
   receiptType?: "compra" | "venta",
 ) {
+  console.log(`💬 interpretChat: userId=${userId}, warehouseId=${warehouseId}, receiptType=${receiptType}`);
   let intentName: string;
   let result: { response: string; success: boolean; data?: unknown };
   let toolsUsed: Array<{ tool: string; args: unknown; result: unknown }> = [];

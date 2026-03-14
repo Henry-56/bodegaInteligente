@@ -21,7 +21,8 @@ async function main() {
       console.log(`🤖 Intent: ${event.intent}`);
       console.log(`💬 Text: ${event.text || ""}`);
       const result = event.resultJson ? JSON.parse(event.resultJson) : {};
-      console.log(`⚙️ Result: ${JSON.stringify(result, null, 2)}`);
+      console.log(`⚙️ Response: ${result.response}`);
+      console.log(`🛠️ Tools Used: ${JSON.stringify(result.toolsUsed || [], null, 2)}`);
       console.log("---------------------------");
     }
   } catch (err) {
