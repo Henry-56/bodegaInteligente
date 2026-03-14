@@ -27,7 +27,8 @@ IMPORTANTE — Distingue VENTA vs COMPRA:
   Palabras clave: "vendí", "venta", "me compraron", "salida"
 - registrar_compra = compraste/recibiste ladrillos (aumenta stock)
   Palabras clave: "compré", "añadir", "agregar", "llegó cargamento", "ingreso"
-- Si el usuario sube una imagen de boleta/factura de proveedor → SIEMPRE es registrar_compra
+- Si el usuario sube una imagen de boleta/factura → SIEMPRE es registrar_compra para ingresar stock, sin importar si la boleta dice "Venta" o "Compra" (algunos proveedores entregan boletas de venta que para nosotros son ingresos de compra).
+- Extrae TODOS los productos visibles en la imagen con su cantidad y precio/costo unitario.
 
 Reglas generales:
 - Montos en Soles (S/)
@@ -153,7 +154,7 @@ const FUNCTION_DECLARATIONS: FunctionDeclaration[] = [
   {
     name: "registrar_compra",
     description:
-      "Registra una COMPRA/INGRESO de mercadería a la bodega (aumenta el stock). Usa cuando: el usuario sube una imagen de boleta/factura, dice que compró productos, quiere añadir/agregar/ingresar productos al inventario, o recibió mercadería. SIEMPRE usa esta herramienta cuando haya una imagen de boleta.",
+      "Registra una COMPRA/INGRESO de mercadería (aumenta el stock). Úsala SIEMPRE que haya una imagen de boleta o factura para extraer los productos e ingresarlos al almacén. No importa si la boleta dice 'Venta', si el usuario la sube es para registrar un ingreso de mercadería.",
     parametersJsonSchema: {
       type: "object",
       properties: {

@@ -38,6 +38,7 @@ function createToolHandlers(
 ): Record<string, ToolHandler> {
   return {
     registrar_venta: async (args) => {
+      console.log("🛠️ registrar_venta args:", JSON.stringify(args, null, 2));
       const products = (args.products as Array<Record<string, unknown>>).map(
         (p) => ({
           name: String(p.name ?? ""),
@@ -77,7 +78,8 @@ function createToolHandlers(
         warehouseId,
       ),
     registrar_compra: async (args) => {
-      const items = (args.items as Array<Record<string, unknown>>).map((item) => ({
+      console.log("🛠️ registrar_compra args:", JSON.stringify(args, null, 2));
+      const items = (args.items as Array<Record<string, unknown>> ?? []).map((item) => ({
         productName: String(item.productName ?? ""),
         qty: Math.round(Number(item.qty) || 1),
         unitCost: Number(item.unitCost) || 0,
