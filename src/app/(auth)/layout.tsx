@@ -4,8 +4,12 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+    <div className="relative flex min-h-screen items-center justify-center bg-mesh px-4 overflow-hidden">
+      {/* Decorative blurred circles for extra depth */}
+      <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-indigo-600/20 blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-pink-600/20 blur-[120px]" />
+      
+      <div className="relative w-full max-w-md">
         {children}
       </div>
     </div>
